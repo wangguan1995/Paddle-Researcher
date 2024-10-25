@@ -111,7 +111,7 @@ if __name__ == "__main__":
             cache_output(idea_file, cache_file)
 
         except: 
-            print ("error in generating experiment plan for idea: ", idea_name)
+            raise ValueError("error in generating experiment plan for idea: " + idea_name)
     
     print ("Total cost: ", all_costs)
 

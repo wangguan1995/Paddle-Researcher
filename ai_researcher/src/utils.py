@@ -15,18 +15,62 @@ def calc_price(model, usage):
         return (0.005 * usage.prompt_tokens + 0.015 * usage.completion_tokens) / 1000.0
 
 def call_api(client, model, prompt_messages, temperature=1.0, max_tokens=100, seed=2024, json_output=False):
+    print("\ndef call_api, ", model, "json_output, ", json_output)
     if "claude" in model:
         if json_output:
             prompt = prompt_messages[0]["content"] + " Directly output the JSON dict with no additional text (avoid the presence of newline characters (\"\n\") and unescaped double quotes within the string so that we can call json.loads() on the output later)."
             prompt_messages = [{"role": "user", "content": prompt}]
-        message = client.messages.create(
-            model=model,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            messages=prompt_messages
-        )
-        cost = calc_price(model, message.usage)
-        response = message.content[0].text
+
+        # 1. Python Client     
+        # message = client.messages.create(
+        #     model=model,
+        #     max_tokens=max_tokens,
+        #     temperature=temperature,
+        #     messages=prompt_messages
+        # )
+        # cost = calc_price(model, message.usage)
+        # response = message.content[0].text
+
+        # 2. Python Ernie
+        # import qianfan
+        # os.environ["QIANFAN_ACCESS_KEY"] = "61ef92d45e4e46d69f1c677ac881203d"
+        # os.environ["QIANFAN_SECRET_KEY"] = "7de8099bb1684313bdae4892e82ae8fb"
+        # chat_comp = qianfan.ChatCompletion()
+
+        # # 指定特定模型
+        # resp = chat_comp.do(model="ERNIE-4.0-8K", messages=[{
+        #     "role": "user",
+        #     "content": "你好"
+        # }])
+        # response = resp["body"]
+
+        # 3. WOKA
+        cost = 0
+        import http.client
+        import json
+        conn = http.client.HTTPSConnection("4.0.wokaai.com")
+        payload = json.dumps({
+            "model": "claude-3-5-sonnet-20240620",
+            "messages": prompt_messages,
+        })
+        with open("../keys.json", "r") as f:
+            keys = json.load(f)
+        key = keys["anthropic_key"]
+        headers = {
+            'Accept': 'application/json',
+            'Authorization': f'Bearer {key}',
+            'User-Agent': 'Apifox/1.0.0 (https://apifox.com)',
+            'Content-Type': 'application/json'
+        }
+        conn.request("POST", "/v1/chat/completions", payload, headers)
+        res = conn.getresponse()
+        data = res.read()
+        response = data.decode("utf-8")
+        json_data = json.loads(response)
+        if 'error' in json_data.keys():
+            raise NotImplementedError("\n!!!!!! A Very Very Bad Error !!!!!! \n" + json_data["error"]["message"])
+        response = json_data['choices'][0]['message']['content']  
+
     else:   
         response_format = {"type": "json_object"} if json_output else {"type": "text"}
         completion = client.chat.completions.create(

@@ -17,6 +17,7 @@ def calc_price(model, usage):
         return (0.0015 * usage.prompt_tokens + 0.002 * usage.completion_tokens) / 1000.0
 
 def call_api(client, model, prompt_messages, temperature=1.0, max_tokens=100, seed=2024, json_output=False):
+    raise NotImplementedError("calling false api")
     if "claude" in model:
         if json_output:
             prompt = prompt_messages[0]["content"] + " Directly output the JSON dict with no additional text. "
@@ -45,6 +46,7 @@ def call_api(client, model, prompt_messages, temperature=1.0, max_tokens=100, se
     return response, cost
 
 def call_api_claude(client, model, prompt_messages, temperature=1.0, max_tokens=100):
+    raise NotImplementedError("calling false api")
     message = client.messages.create(
         model=model,
         max_tokens=max_tokens,

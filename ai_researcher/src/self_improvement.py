@@ -76,6 +76,9 @@ def get_related_works(idea_name, idea, topic_description, openai_client, model, 
         ## score each paper
         prompt, response, cost = paper_scoring(paper_lst, idea, topic_description, openai_client, model, seed)
         total_cost += cost
+        json_start = response.index('{')  
+        json_end = response.rindex('}') + 1  
+        response = response[json_start:json_end] 
         response = json.loads(response.strip())
 
         ## initialize all scores to 0 then fill in gpt4 scores

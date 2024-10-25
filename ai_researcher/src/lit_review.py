@@ -92,6 +92,9 @@ def collect_papers(topic_description, openai_client, model, seed, grounding_k = 
         ## score each paper
         _, response, cost = paper_score(paper_lst, topic_description, openai_client, model, seed, mode=mode, idea=idea)
         total_cost += cost
+        json_start = response.index('{')  
+        json_end = response.rindex('}') + 1  
+        response = response[json_start:json_end] 
         response = json.loads(response.strip())
 
         ## initialize all scores to 0 then fill in gpt4 scores
@@ -144,6 +147,9 @@ def collect_papers(topic_description, openai_client, model, seed, grounding_k = 
             ## gpt4 score new papers
             _, response, cost = paper_score(paper_lst, topic_description, openai_client, model, seed, mode=mode, idea=idea)
             total_cost += cost
+            json_start = response.index('{')  
+            json_end = response.rindex('}') + 1  
+            response = response[json_start:json_end] 
             response = json.loads(response.strip())
             for k,v in response.items():
                 try:

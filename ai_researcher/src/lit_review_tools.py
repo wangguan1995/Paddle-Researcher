@@ -3,9 +3,9 @@ import re
 import json
 
 # Define the paper search endpoint URL
-search_url = 'https://api.semanticscholar.org/graph/v1/paper/search/'
-graph_url = 'https://api.semanticscholar.org/graph/v1/paper/'
-rec_url = "https://api.semanticscholar.org/recommendations/v1/papers/forpaper/"
+search_url = 'https://api.ominiai.cn/generalProxy/graph/v1/paper/search/'
+graph_url = 'https://api.ominiai.cn/generalProxy/graph/v1/paper/'
+rec_url = "https://api.ominiai.cn/generalProxy/recommendations/v1/papers/forpaper/"
 
 with open("../keys.json", "r") as f:
     keys = json.load(f)
@@ -18,7 +18,10 @@ def KeywordQuery(keyword):
         'limit': 20,
         'fields': 'title,year,citationCount,abstract,tldr'
     }
-    headers = {'x-api-key': S2_KEY}
+    headers = {
+        'OMINI-API-Model':'semantic',
+        'Authorization': 'Bearer ' + S2_KEY,
+    }
     response = requests.get(search_url, params=query_params, headers = headers)
     
     if response.status_code == 200:
@@ -114,6 +117,7 @@ def parse_and_execute(output):
         keyword = match.group(1) if match else None
         if keyword:
             response = KeywordQuery(keyword)
+            print("\nresponse", response)
             if 'total' in response and response['total'] == 0:
                 return None
             if response is not None:
